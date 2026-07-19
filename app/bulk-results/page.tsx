@@ -486,6 +486,14 @@ function BulkResultsContent() {
 
                 {/* Expanded Details - Identical to Quick Scan Format */}
                 {isExpanded && result.status === "success" && (
+                  <>
+                    {console.log(`[v0] Bulk results expanded: ${result.item}`, {
+                      hasThreats: !!result.data?.threats,
+                      threatsLength: result.data?.threats?.length || 0,
+                      hasGeolocation: !!result.data?.geolocation,
+                      geoCountry: result.data?.geolocation?.country,
+                      threatLevel: result.threatLevel,
+                    })}
                   <div className="border-t border-primary/20 px-6 py-6 bg-black/20 space-y-6">
                     {/* Header Section */}
                     <div className="flex items-start justify-between">
@@ -509,6 +517,14 @@ function BulkResultsContent() {
                         {result.threatLevel}
                       </div>
                     </div>
+
+                    {/* Data Validation Warning */}
+                    {(!result.data?.threats || result.data.threats.length === 0) && (!result.data?.geolocation || !result.data.geolocation.country) && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/40 p-3 rounded text-yellow-400/80 text-xs">
+                        <p className="font-bold mb-1">⚠ Incomplete Data</p>
+                        <p>Threat intelligence or geolocation data is still loading or unavailable. Refresh to retry.</p>
+                      </div>
+                    )}
 
                     {/* Metadata Row */}
                     <div className="grid grid-cols-4 gap-6 py-4 border-y border-primary/20 text-xs">
@@ -579,10 +595,14 @@ function BulkResultsContent() {
                               }
                               
                               // All other threats as simple display
+                              const borderClass = threat.detected ? "border-red-500/20" : "border-green-500/20";
+                              const textClass = threat.detected ? "text-red-400" : "text-green-400";
+                              const descClass = threat.detected ? "text-red-400/80" : "text-green-400/80";
+                              
                               return (
-                                <div key={idx} className={`p-3 bg-secondary/40 border border-${threatColor}-500/20 rounded`}>
-                                  <span className={`text-xs font-bold text-${threatColor}-400`}>{threatIcon} {threat.name.toUpperCase()}</span>
-                                  <p className={`text-xs text-${threatColor}-400/80 mt-1`}>{threat.description}</p>
+                                <div key={idx} className={`p-3 bg-secondary/40 border ${borderClass} rounded`}>
+                                  <span className={`text-xs font-bold ${textClass}`}>{threatIcon} {threat.name.toUpperCase()}</span>
+                                  <p className={`text-xs ${descClass} mt-1`}>{threat.description || "No description available"}</p>
                                 </div>
                               );
                             })
@@ -636,7 +656,14 @@ function BulkResultsContent() {
                           </div>
                           <div className="flex justify-between p-2 bg-secondary/40 rounded">
                             <span className="text-green-400/70">Coordinates</span>
-                            <span className="font-bold text-foreground font-mono">{result.data?.geolocation?.latitude && result.data?.geolocation?.longitude ? `${result.data.geolocation.latitude}, ${result.data.geolocation.longitude}` : "N/A"}</span>
+                            <span className="font-bold text-foreground font-mono">
+                              {result.data?.geolocation?.coordinates && result.data.geolocation.coordinates !== "N/A" 
+                                ? result.data.geolocation.coordinates 
+                                : result.data?.geolocation?.latitude && result.data?.geolocation?.longitude 
+                                  ? `${result.data.geolocation.latitude}, ${result.data.geolocation.longitude}`
+                                  : "N/A"
+                              }
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -673,6 +700,7 @@ function BulkResultsContent() {
                       View Full Report
                     </button>
                   </div>
+                  </>
                 )}
               </div>
             )

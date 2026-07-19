@@ -30,7 +30,13 @@ async function scanItem(item: string, type: string) {
   try {
     console.log(`[v0] Bulk scan: Scanning ${type} - ${item}`)
 
-    const response = await fetch(`/api/scan?type=${type}&query=${encodeURIComponent(item)}`, {
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
+    const host = process.env.VERCEL_URL || "localhost:3000"
+    const url = `${protocol}://${host}/api/scan?type=${type}&query=${encodeURIComponent(item)}`
+    
+    console.log(`[v0] Bulk scan: Calling URL: ${url}`)
+
+    const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -51,7 +57,11 @@ async function scanItem(item: string, type: string) {
     }
 
     const data = await response.json()
-    console.log(`[v0] Bulk scan: Successfully scanned ${item}`)
+    console.log(`[v0] Bulk scan: Successfully scanned ${item} with data:`, {
+      threatLevel: data.threatLevel,
+      threats: data.threats?.length,
+      hasGeolocation: !!data.geolocation,
+    })
 
     return {
       item,
@@ -115,7 +125,15 @@ export async function POST(request: NextRequest) {
 
     const results = []
 
-    for (const { item, type } of validItems) {
+    for (let i = 0; i < validItems.length; i++) {
+      const { item, type } = validItems[i]
+      
+      // Add delay between requests to avoid rate limiting (1 second between requests)
+      if (i > 0) {
+        console.log(`[v0] Bulk scan API: Waiting 1 second before scanning item ${i + 1}/${validItems.length}`)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+      
       const result = await scanItem(item, type)
       results.push(result)
 
