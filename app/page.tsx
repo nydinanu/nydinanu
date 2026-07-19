@@ -86,51 +86,14 @@ export default function HomePage() {
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden">
-            <Button variant="outline" size="sm" className="nav-btn h-8 px-2 text-xs">
+            <Button variant="outline" size="sm" className="nav-btn border border-green-500/70 text-green-400 bg-transparent hover:bg-green-500/10 h-8 px-2 text-xs">
               <Shield className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Navigation Button Styles */}
-      <style jsx>{`
-        .nav-btn {
-          position: relative;
-          border: 1px solid hsl(145, 89%, 50%);
-          color: hsl(145, 89%, 50%);
-          background: transparent;
-          overflow: hidden;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
-        .nav-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, hsl(145, 89%, 50%, 0.2), transparent);
-          transition: left 0.5s ease;
-          pointer-events: none;
-        }
-        
-        .nav-btn:hover {
-          border-color: hsl(145, 89%, 60%);
-          background: hsl(145, 89%, 50%, 0.08);
-          box-shadow: 0 0 20px hsl(145, 89%, 50%, 0.4), inset 0 0 20px hsl(145, 89%, 50%, 0.1);
-          transform: translateY(-2px);
-        }
-        
-        .nav-btn:hover::before {
-          left: 100%;
-        }
-        
-        .nav-btn:active {
-          transform: translateY(0px);
-        }
-      `}</style>
+
 
       {/* Main Content - Add margin-top to account for fixed header */}
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16 mt-20 md:mt-24 relative z-10">

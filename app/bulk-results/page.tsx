@@ -377,8 +377,9 @@ function BulkResultsContent() {
         <div className="space-y-2">
           {filteredResults?.map((result: any, index: number) => {
             const isExpanded = expandedRows.includes(index)
-            const threatData = result.data?.threatData || {}
-            const geoData = result.data?.geoData || {}
+            // Extract threats from data structure
+            const threatData = result.data?.threats || []
+            const geoData = result.data?.geolocation || {}
             
             return (
               <div key={index} className="cyber-card rounded-lg overflow-hidden">
@@ -502,55 +503,29 @@ function BulkResultsContent() {
                           </div>
                         )}
 
-                        {/* VirusTotal Detection */}
-                        {(result.data?.attributes?.last_analysis_stats || result.threats > 0) && (
-                          <div className="cyber-card p-4 border border-red-500/40 bg-red-500/5">
-                            <div className="flex items-start gap-2 mb-3">
-                              <span className="text-red-500 text-lg">✕</span>
-                              <div>
-                                <h4 className="text-xs font-bold text-red-400 uppercase">VirusTotal Detection</h4>
-                                {result.data?.attributes?.last_analysis_stats ? (
-                                  <p className="text-xs text-red-400/70 mt-1">Flagged as malicious by {result.data.attributes.last_analysis_stats.malicious || 0}/{91} security vendors ({result.data.attributes.last_analysis_stats.suspicious || 0} suspicious)</p>
-                                ) : (
-                                  <p className="text-xs text-red-400/70 mt-1">Detected by {result.threats || 0} security vendor(s)</p>
-                                )}
+                        {/* Threats List */}
+                        {threatData && threatData.length > 0 ? (
+                          threatData.map((threat: any, idx: number) => (
+                            <div key={idx} className="cyber-card p-4 border border-red-500/40 bg-red-500/5">
+                              <div className="flex items-start gap-2 mb-2">
+                                <span className={`text-lg ${threat.detected ? "text-red-500" : "text-green-500"}`}>
+                                  {threat.detected ? "✕" : "✓"}
+                                </span>
+                                <div className="flex-1">
+                                  <h4 className="text-xs font-bold text-red-400 uppercase">{threat.source}</h4>
+                                  <p className="text-xs text-red-400/70 mt-1">{threat.name || "Threat detected"}</p>
+                                  {threat.category && <p className="text-xs text-red-400/60">Category: {threat.category}</p>}
+                                </div>
                               </div>
                             </div>
-                            {result.data?.attributes?.last_analysis_stats ? (
-                              <div className="grid grid-cols-4 gap-2">
-                                <div className="bg-secondary/40 p-2 rounded text-center border border-red-500/30">
-                                  <p className="text-lg font-bold text-red-500">{result.data.attributes.last_analysis_stats.malicious || 0}</p>
-                                  <p className="text-xs text-red-400/70">Malicious</p>
-                                </div>
-                                <div className="bg-secondary/40 p-2 rounded text-center border border-yellow-500/30">
-                                  <p className="text-lg font-bold text-yellow-500">{result.data.attributes.last_analysis_stats.suspicious || 0}</p>
-                                  <p className="text-xs text-yellow-400/70">Suspicious</p>
-                                </div>
-                                <div className="bg-secondary/40 p-2 rounded text-center border border-blue-500/30">
-                                  <p className="text-lg font-bold text-blue-400">{result.data.attributes.last_analysis_stats.undetected || 0}</p>
-                                  <p className="text-xs text-blue-400/70">Undetected</p>
-                                </div>
-                                <div className="bg-secondary/40 p-2 rounded text-center border border-primary/30">
-                                  <p className="text-lg font-bold text-primary">91</p>
-                                  <p className="text-xs text-primary/70">Total</p>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-xs text-red-400/70 py-2">
-                                Full threat details available - {result.threats} threats detected
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* AbuseIPDB */}
-                        {result.data?.abuseConfidenceScore !== undefined && (
-                          <div className="cyber-card p-4 border border-orange-500/40 bg-orange-500/5">
+                          ))
+                        ) : (
+                          <div className="cyber-card p-4 border border-green-500/40 bg-green-500/5">
                             <div className="flex items-start gap-2">
-                              <span className="text-orange-500 text-lg">✕</span>
-                              <div className="flex-1">
-                                <h4 className="text-xs font-bold text-orange-400 uppercase">AbuseIPDB Reports</h4>
-                                <p className="text-xs text-orange-400/70 mt-1">Abuse confidence score: {result.data.abuseConfidenceScore || 0}% ({result.data.totalReports || 0} reports in last 90 days)</p>
+                              <span className="text-green-500 text-lg">✓</span>
+                              <div>
+                                <h4 className="text-xs font-bold text-green-400 uppercase">No threats detected</h4>
+                                <p className="text-xs text-green-400/70 mt-1">Scan completed successfully with no known threats</p>
                               </div>
                             </div>
                           </div>
@@ -601,61 +576,48 @@ function BulkResultsContent() {
                         )}
                       </div>
 
-                      {/* Right Column: Geolocation Data or Fallback */}
-                      {(result.data?.geolocation?.country || result.data?.country) ? (
-                        <div className="cyber-card p-4 border border-green-500/40 bg-green-500/5">
-                          <h4 className="text-xs font-bold text-green-400 uppercase mb-4 flex items-center gap-2">
-                            <span>📍</span> GEOLOCATION DATA
-                          </h4>
-                          <div className="space-y-3 text-sm">
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">Country</span>
-                              <span className="text-foreground font-bold">{result.data?.geolocation?.country || result.data?.country || "-"}</span>
+                      {/* Right Column: Geolocation Data */}
+                      <div className="cyber-card p-4 border border-blue-500/40 bg-blue-500/5">
+                        <h4 className="text-xs font-bold text-blue-400 uppercase mb-3 flex items-center gap-2">
+                          📍 GEOLOCATION DATA
+                        </h4>
+                        <div className="space-y-2 text-xs">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-blue-400/60">COUNTRY</p>
+                              <p className="text-blue-400 font-bold">{geoData?.country || "Unknown"}</p>
                             </div>
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">City</span>
-                              <span className="text-foreground font-bold">{result.data?.geolocation?.city || result.data?.city || "-"}</span>
+                            <div>
+                              <p className="text-blue-400/60">CITY</p>
+                              <p className="text-blue-400 font-bold">{geoData?.city || "Unknown"}</p>
                             </div>
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">Region</span>
-                              <span className="text-foreground font-bold">{result.data?.geolocation?.region || result.data?.region || "-"}</span>
+                            <div>
+                              <p className="text-blue-400/60">REGION</p>
+                              <p className="text-blue-400 font-bold">{geoData?.region || "Unknown"}</p>
                             </div>
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">ISP</span>
-                              <span className="text-foreground font-bold text-xs">{result.data?.geolocation?.isp || result.data?.isp || "-"}</span>
+                            <div>
+                              <p className="text-blue-400/60">ISP</p>
+                              <p className="text-blue-400 font-bold">{geoData?.isp || "Unknown"}</p>
                             </div>
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">ASN</span>
-                              <span className="text-foreground font-bold">{result.data?.geolocation?.asn || result.data?.asn || "-"}</span>
+                            <div>
+                              <p className="text-blue-400/60">ASN</p>
+                              <p className="text-blue-400 font-bold">{geoData?.asn || "Unknown"}</p>
                             </div>
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">Organization</span>
-                              <span className="text-foreground font-bold text-xs">{result.data?.geolocation?.organization || result.data?.organization || "-"}</span>
+                            <div>
+                              <p className="text-blue-400/60">ORGANIZATION</p>
+                              <p className="text-blue-400 font-bold">{geoData?.organization || "Unknown"}</p>
                             </div>
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">Timezone</span>
-                              <span className="text-foreground font-bold">{result.data?.geolocation?.timezone || result.data?.timezone || "-"}</span>
+                            <div>
+                              <p className="text-blue-400/60">TIMEZONE</p>
+                              <p className="text-blue-400 font-bold">{geoData?.timezone || "Unknown"}</p>
                             </div>
-                            <div className="flex justify-between border-b border-green-500/20 pb-2">
-                              <span className="text-green-400/70">HOSTNAMES</span>
-                              <span className="text-foreground font-bold">{result.data?.geolocation?.hostnames ? "Y" : "N"}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-green-400/70">Coordinates</span>
-                              <span className="text-foreground font-bold">{result.data?.geolocation?.latitude && result.data?.geolocation?.longitude ? `${result.data.geolocation.latitude}, ${result.data.geolocation.longitude}` : "-"}</span>
+                            <div>
+                              <p className="text-blue-400/60">COORDINATES</p>
+                              <p className="text-blue-400 font-bold font-mono text-xs">{geoData?.coordinates || "N/A"}</p>
                             </div>
                           </div>
                         </div>
-                      ) : (
-                        <div className="cyber-card p-4 border border-blue-500/40 bg-blue-500/5">
-                          <h4 className="text-xs font-bold text-blue-400 uppercase mb-3 flex items-center gap-2">
-                            <span>📍</span> GEOLOCATION DATA
-                          </h4>
-                          <p className="text-xs text-blue-400/70">
-                            No geolocation data available. Re-scan for complete information.
-                          </p>
-                        </div>
-                      )}
+                      </div>
                     </div>
 
                     {/* Bottom: Detailed Open Ports & Services */}
