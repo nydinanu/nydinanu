@@ -486,15 +486,7 @@ function BulkResultsContent() {
 
                 {/* Expanded Details - Identical to Quick Scan Format */}
                 {isExpanded && result.status === "success" && (
-                  <>
-                    {console.log(`[v0] Bulk results expanded: ${result.item}`, {
-                      hasThreats: !!result.data?.threats,
-                      threatsLength: result.data?.threats?.length || 0,
-                      hasGeolocation: !!result.data?.geolocation,
-                      geoCountry: result.data?.geolocation?.country,
-                      threatLevel: result.threatLevel,
-                    })}
-                  <div className="border-t border-primary/20 px-6 py-6 bg-black/20 space-y-6">
+                  <div className="border-t border-primary/20 px-6 py-6 bg-black/20 space-y-6 animate-in fade-in duration-300">
                     {/* Header Section */}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -700,7 +692,6 @@ function BulkResultsContent() {
                       View Full Report
                     </button>
                   </div>
-                  </>
                 )}
               </div>
             )
