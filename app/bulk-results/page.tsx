@@ -540,97 +540,56 @@ function BulkResultsContent() {
                         </h3>
 
                         <div className="space-y-2">
-                          {/* VirusTotal Detection */}
-                          {result.data?.attributes?.last_analysis_stats ? (
-                            <div className="p-3 bg-secondary/40 border border-red-500/20 rounded">
-                              <div className="flex items-start justify-between mb-2">
-                                <span className="text-xs font-bold text-red-400">✕ VirusTotal Detection</span>
-                              </div>
-                              <p className="text-xs text-red-400/80 mb-3">Flagged as malicious by {result.data.attributes.last_analysis_stats.malicious || 0}/91 security vendors ({result.data.attributes.last_analysis_stats.suspicious || 0} suspicious)</p>
-                              <div className="grid grid-cols-4 gap-2 text-xs">
-                                <div className="bg-black/40 p-2.5 rounded text-center border border-red-500/30">
-                                  <p className="font-bold text-red-500">{result.data.attributes.last_analysis_stats.malicious || 0}</p>
-                                  <p className="text-red-400/70 text-xs">Malicious</p>
+                          {/* Map through threats array from API response */}
+                          {result.data?.threats && Array.isArray(result.data.threats) ? (
+                            result.data.threats.map((threat: any, idx: number) => {
+                              const threatIcon = threat.detected ? "✕" : "✓";
+                              const threatColor = threat.detected ? "red" : "green";
+                              const threatClass = threat.detected ? "red" : "green";
+                              
+                              // VirusTotal Detection special handling
+                              if (threat.name === "VirusTotal Detection" && threat.details?.analysisStats) {
+                                const stats = threat.details.analysisStats;
+                                return (
+                                  <div key={idx} className="p-3 bg-secondary/40 border border-red-500/20 rounded">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <span className="text-xs font-bold text-red-400">✕ {threat.name.toUpperCase()}</span>
+                                    </div>
+                                    <p className="text-xs text-red-400/80 mb-3">{threat.description}</p>
+                                    <div className="grid grid-cols-4 gap-2 text-xs">
+                                      <div className="bg-black/40 p-2.5 rounded text-center border border-red-500/30">
+                                        <p className="font-bold text-red-500">{stats.malicious || 0}</p>
+                                        <p className="text-red-400/70 text-xs">Malicious</p>
+                                      </div>
+                                      <div className="bg-black/40 p-2.5 rounded text-center border border-yellow-500/30">
+                                        <p className="font-bold text-yellow-500">{stats.suspicious || 0}</p>
+                                        <p className="text-yellow-400/70 text-xs">Suspicious</p>
+                                      </div>
+                                      <div className="bg-black/40 p-2.5 rounded text-center border border-green-500/30">
+                                        <p className="font-bold text-green-500">{stats.undetected || 0}</p>
+                                        <p className="text-green-400/70 text-xs">Undetected</p>
+                                      </div>
+                                      <div className="bg-black/40 p-2.5 rounded text-center border border-primary/30">
+                                        <p className="font-bold text-primary">{threat.details.totalEngines || 91}</p>
+                                        <p className="text-primary/70 text-xs">Total</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              
+                              // All other threats as simple display
+                              return (
+                                <div key={idx} className={`p-3 bg-secondary/40 border border-${threatColor}-500/20 rounded`}>
+                                  <span className={`text-xs font-bold text-${threatColor}-400`}>{threatIcon} {threat.name.toUpperCase()}</span>
+                                  <p className={`text-xs text-${threatColor}-400/80 mt-1`}>{threat.description}</p>
                                 </div>
-                                <div className="bg-black/40 p-2.5 rounded text-center border border-yellow-500/30">
-                                  <p className="font-bold text-yellow-500">{result.data.attributes.last_analysis_stats.suspicious || 0}</p>
-                                  <p className="text-yellow-400/70 text-xs">Suspicious</p>
-                                </div>
-                                <div className="bg-black/40 p-2.5 rounded text-center border border-green-500/30">
-                                  <p className="font-bold text-green-500">{result.data.attributes.last_analysis_stats.undetected || 0}</p>
-                                  <p className="text-green-400/70 text-xs">Undetected</p>
-                                </div>
-                                <div className="bg-black/40 p-2.5 rounded text-center border border-primary/30">
-                                  <p className="font-bold text-primary">91</p>
-                                  <p className="text-primary/70 text-xs">Total</p>
-                                </div>
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {/* Phishing Detection */}
-                          <div className="p-3 bg-secondary/40 border border-green-500/20 rounded">
-                            <span className="text-xs font-bold text-green-400">✓ PHISHING DETECTION</span>
-                            <p className="text-xs text-green-400/80 mt-1">{result.data?.phishingRisk > 0 ? `Phishing risk detected (Risk: ${result.data.phishingRisk}/100)` : "No phishing indicators detected (Risk: 0/100)"}</p>
-                          </div>
-
-                          {/* Email Security */}
-                          {result.type === "domain" && (
-                            <div className="p-3 bg-secondary/40 border border-red-500/20 rounded">
-                              <span className="text-xs font-bold text-red-400">✕ EMAIL SECURITY (SPF/DMARC/DKIM)</span>
-                              <p className="text-xs text-red-400/80 mt-1">SPF: X | DMARC: X | DKIM: X</p>
-                            </div>
-                          )}
-
-                          {/* Malware Distribution */}
-                          <div className="p-3 bg-secondary/40 border border-green-500/20 rounded">
-                            <span className="text-xs font-bold text-green-400">✓ MALWARE DISTRIBUTION</span>
-                            <p className="text-xs text-green-400/80 mt-1">No malware distribution detected</p>
-                          </div>
-
-                          {/* Domain Reputation (Domain only) */}
-                          {result.type === "domain" && (
+                              );
+                            })
+                          ) : (
                             <div className="p-3 bg-secondary/40 border border-green-500/20 rounded">
-                              <span className="text-xs font-bold text-green-400">✓ DOMAIN REPUTATION</span>
-                              <p className="text-xs text-green-400/80 mt-1">Reputation score: 50/100 (VirusTotal reputation: 0)</p>
-                            </div>
-                          )}
-
-                          {/* SSL Certificate (Domain only) */}
-                          {result.type === "domain" && (
-                            <div className="p-3 bg-secondary/40 border border-green-500/20 rounded">
-                              <span className="text-xs font-bold text-green-400">✓ SSL CERTIFICATE</span>
-                              <p className="text-xs text-green-400/80 mt-1">Valid certificate issued by Unknown</p>
-                            </div>
-                          )}
-
-                          {/* Censys Exposed Services */}
-                          <div className="p-3 bg-secondary/40 border border-green-500/20 rounded">
-                            <span className="text-xs font-bold text-green-400">✓ CENSYS EXPOSED SERVICES</span>
-                            <p className="text-xs text-green-400/80 mt-1">Censys data unavailable</p>
-                          </div>
-
-                          {/* AbuseIPDB (IP only) */}
-                          {result.type === "ip" && result.data?.abuseConfidenceScore !== undefined && (
-                            <div className="p-3 bg-secondary/40 border border-red-500/20 rounded">
-                              <span className="text-xs font-bold text-red-400">✕ AbuseIPDB Reports</span>
-                              <p className="text-xs text-red-400/80 mt-1">Abuse confidence score: {result.data.abuseConfidenceScore}% ({result.data.totalReports || 0} reports in last 90 days)</p>
-                            </div>
-                          )}
-
-                          {/* Shodan Vulnerabilities (IP only) */}
-                          {result.type === "ip" && (
-                            <div className="p-3 bg-secondary/40 border border-green-500/20 rounded">
-                              <span className="text-xs font-bold text-green-400">✓ SHODAN VULNERABILITIES</span>
-                              <p className="text-xs text-green-400/80 mt-1">No known vulnerabilities detected</p>
-                            </div>
-                          )}
-
-                          {/* Open Ports & Services */}
-                          {result.type === "ip" && result.data?.openPorts?.length > 0 && (
-                            <div className="p-3 bg-secondary/40 border border-green-500/20 rounded">
-                              <span className="text-xs font-bold text-green-400">✓ OPEN PORTS & SERVICES</span>
-                              <p className="text-xs text-green-400/80 mt-1">{result.data.openPorts.length} open ports detected: {result.data.openPorts.map((p: any) => p.port).join(', ')}</p>
+                              <span className="text-xs font-bold text-green-400">✓ NO THREATS DETECTED</span>
+                              <p className="text-xs text-green-400/80 mt-1">No threats identified in this scan</p>
                             </div>
                           )}
                         </div>
@@ -673,31 +632,40 @@ function BulkResultsContent() {
                           </div>
                           <div className="flex justify-between p-2 bg-secondary/40 rounded">
                             <span className="text-green-400/70">HOSTNAMES</span>
-                            <span className="font-bold text-foreground">{result.data?.geolocation?.hostnames ? "Y" : "-"}</span>
+                            <span className="font-bold text-foreground">{result.data?.geolocation?.hostnames === 'Y' || result.data?.geolocation?.hostnames === true ? "Y" : "-"}</span>
                           </div>
                           <div className="flex justify-between p-2 bg-secondary/40 rounded">
                             <span className="text-green-400/70">Coordinates</span>
-                            <span className="font-bold text-foreground font-mono">{result.data?.geolocation?.coordinates || "N/A"}</span>
+                            <span className="font-bold text-foreground font-mono">{result.data?.geolocation?.latitude && result.data?.geolocation?.longitude ? `${result.data.geolocation.latitude}, ${result.data.geolocation.longitude}` : "N/A"}</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* OPEN PORTS & SERVICES - Extended View (IP only) */}
-                    {result.type === "ip" && result.data?.openPorts?.length > 0 && (
-                      <div className="p-4 border border-green-500/40 bg-green-500/5 rounded">
-                        <h3 className="text-sm font-bold text-green-400 uppercase tracking-wider mb-4 flex items-center gap-2 pb-3 border-b border-green-500/30">
-                          ⚡ OPEN PORTS & SERVICES
-                        </h3>
-                        <div className="space-y-2">
-                          {result.data.openPorts.map((port: any, i: number) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-green-400">
-                              <span className="text-lg">⚡</span>
-                              <span className="font-mono">{port.port}/tcp: {port.service || "Unknown"}</span>
+                    {result.type === "ip" && result.data?.threats && (
+                      (() => {
+                        const openPortsThreat = result.data.threats.find((t: any) => t.name === "Open Ports & Services");
+                        const hasOpenPorts = openPortsThreat?.detected;
+                        const portDescription = openPortsThreat?.description || "";
+                        const portsMatch = portDescription.match(/(\d+(?:\/tcp)?)/g);
+                        
+                        return hasOpenPorts && portsMatch ? (
+                          <div className="p-4 border border-green-500/40 bg-green-500/5 rounded">
+                            <h3 className="text-sm font-bold text-green-400 uppercase tracking-wider mb-4 flex items-center gap-2 pb-3 border-b border-green-500/30">
+                              ⚡ OPEN PORTS & SERVICES
+                            </h3>
+                            <div className="space-y-2">
+                              {portsMatch.map((port: string, i: number) => (
+                                <div key={i} className="flex items-center gap-2 text-xs text-green-400">
+                                  <span className="text-lg">⚡</span>
+                                  <span className="font-mono">{port}/tcp: Unknown</span>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
+                          </div>
+                        ) : null;
+                      })()
                     )}
 
                     {/* VIEW FULL REPORT Button */}
