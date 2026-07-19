@@ -1,0 +1,16 @@
+{
+  "buildCommand": "next build",
+  "env": {
+    "UPSTASH_REDIS_URL": "@upstash_redis_url",
+    "UPSTASH_REDIS_TOKEN": "@upstash_redis_token",
+    "UPSTASH_SEARCH_REST_URL": "@upstash_search_rest_url",
+    "UPSTASH_SEARCH_REST_TOKEN": "@upstash_search_rest_token",
+    "UPSTASH_SEARCH_REST_READONLY_TOKEN": "@upstash_search_rest_readonly_token",
+    "VIRUSTOTAL_API_KEY": "@virustotal_api_key",
+    "ABUSEIPDB_API_KEY": "@abuseipdb_api_key",
+    "SHODAN_API_KEY": "@shodan_api_key",
+    "CENSYS_API_ID": "@censys_api_id",
+    "CENSYS_API_SECRET": "@censys_api_secret",
+    "NEXT_PUBLIC_BASE_URL": "@next_public_base_url"
+  }
+}
