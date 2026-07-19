@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { Shield, ArrowLeft, Download, Search, AlertTriangle, CheckCircle, XCircle, FileText, Lock, TrendingUp, ChevronDown, ChevronUp } from "lucide-react"
+import { Shield, ArrowLeft, Download, Search, AlertTriangle, CheckCircle, XCircle, FileText, Lock, TrendingUp, ChevronDown, ChevronUp, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
@@ -387,39 +387,97 @@ function BulkResultsContent() {
                   onClick={() => toggleRowExpansion(index)}
                   className="p-4 cursor-pointer hover:bg-secondary/30 transition-colors flex items-center justify-between"
                 >
-                  <div className="flex items-center gap-4 flex-1">
-                    <button className="text-primary/60 hover:text-primary">
+                  <div className="flex items-center gap-6 flex-1">
+                    <button className="text-primary/60 hover:text-primary flex-shrink-0">
                       {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </button>
-                    <div className="min-w-[120px]">
+                    
+                    {/* Target & Type */}
+                    <div className="min-w-[200px]">
                       <p className="font-mono text-sm font-bold text-foreground">{result.item}</p>
                       <p className="text-xs text-muted-foreground">{result.type.toUpperCase()}</p>
                     </div>
-                    <div>
-                      {result.status === "success" ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <XCircle className="w-5 h-5 text-red-500" />
-                      )}
+
+                    {/* Threat Summary Indicators */}
+                    <div className="flex items-center gap-6 flex-1">
+                      {/* VirusTotal Detection */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-center">
+                          {result.data?.attributes?.last_analysis_stats?.malicious ? (
+                            <XCircle className="w-4 h-4 text-red-500" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          )}
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">VT</p>
+                        </div>
+                        {result.data?.attributes?.last_analysis_stats && (
+                          <span className="text-xs text-primary">
+                            {result.data.attributes.last_analysis_stats.malicious || 0}/{91}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Phishing Detection */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-center">
+                          {result.data?.phishingRisk > 0 ? (
+                            <AlertCircle className="w-4 h-4 text-orange-500" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          )}
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">Phish</p>
+                        </div>
+                      </div>
+
+                      {/* SSL Certificate */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-center">
+                          {result.data?.sslValid ? (
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500" />
+                          )}
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">SSL</p>
+                        </div>
+                      </div>
+
+                      {/* Open Ports */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-center">
+                          {result.data?.openPorts?.length > 0 ? (
+                            <AlertCircle className="w-4 h-4 text-orange-500" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          )}
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">Ports</p>
+                        </div>
+                        {result.data?.openPorts?.length > 0 && (
+                          <span className="text-xs text-primary">{result.data.openPorts.length}</span>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Threat Level Badge */}
                     <div className="min-w-[100px]">
                       {result.status === "success" && (
                         <span
                           className={`px-3 py-1 rounded text-xs font-bold uppercase inline-block ${
                             result.threatLevel === "critical"
-                              ? "bg-red-500/20 text-red-500"
+                              ? "bg-red-500/20 text-red-500 border border-red-500/40"
                               : result.threatLevel === "high"
-                                ? "bg-orange-500/20 text-orange-500"
+                                ? "bg-orange-500/20 text-orange-500 border border-orange-500/40"
                                 : result.threatLevel === "medium"
-                                  ? "bg-yellow-500/20 text-yellow-500"
-                                  : "bg-green-500/20 text-green-500"
+                                  ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/40"
+                                  : "bg-green-500/20 text-green-500 border border-green-500/40"
                           }`}
                         >
                           {result.threatLevel}
                         </span>
                       )}
                     </div>
-                    <div className="min-w-[80px]">
+
+                    {/* Threat Count */}
+                    <div className="min-w-[80px] text-right">
                       <p className="text-sm font-bold text-primary">{result.status === "success" ? result.threats : "-"}</p>
                       <p className="text-xs text-muted-foreground">Threats</p>
                     </div>
